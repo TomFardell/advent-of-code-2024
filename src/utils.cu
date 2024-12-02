@@ -1,4 +1,5 @@
 #include <cuda.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -73,4 +74,8 @@ void error_check(cudaError_t err) {
     fprintf(stderr, "GPU error\n%d %s: %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
     exit(EXIT_FAILURE);
   }
+}
+
+int calculate_num_blocks(int block_size, int desired_threads) {
+  return ceil((double)desired_threads / (double)block_size);
 }

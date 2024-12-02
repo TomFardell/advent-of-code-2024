@@ -3,11 +3,15 @@ CFLAGS = -Wall -Wextra
 CUDAFLAGS = "--compiler-options=$(CFLAGS)" -rdc=true
 
 LD = nvcc
+LDFLAGS = -lm
 
 all: \
-	01
+	01 02
 
 01: src/01.o src/utils.o 
+	$(LD) -o $@.out $^ $(LDFLAGS)
+
+02: src/02.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
 %.o: %.cu

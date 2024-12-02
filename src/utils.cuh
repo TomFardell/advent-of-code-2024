@@ -6,5 +6,6 @@
 void merge_sort(int *arr, int N, int *res);
 void print_int_array(int *arr, int N);
 void error_check(cudaError_t err);
+int calculate_num_blocks(int block_size, int desired_threads);
 
 #endif
