@@ -3,6 +3,8 @@
 
 #include <cuda.h>
 
-void process_cuda_error(cudaError_t err);
+void merge_sort(int *arr, int N, int *res);
+void print_int_array(int *arr, int N);
+void error_check(cudaError_t err);
 
 #endif

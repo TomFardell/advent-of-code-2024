@@ -5,9 +5,9 @@ CUDAFLAGS = "--compiler-options=$(CFLAGS)" -rdc=true
 LD = nvcc
 
 all: \
-	01a
+	01
 
-01a: src/01a.o src/utils.o 
+01: src/01.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
 %.o: %.cu
