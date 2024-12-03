@@ -9,7 +9,7 @@
 #define MAX_NUMS_ON_LINE 9  // Set to one more than actual line lengths to house array terminator
 #define MAX_NUM_DIGITS 2
 #define MAX_LINE_LENGTH 30
-#define BLOCK_SIZE 4  // BLOCK_SIZE <= NUM_LINES
+#define BLOCK_SIZE 4
 
 __constant__ int data_dev[NUM_LINES * MAX_NUMS_ON_LINE];
 
