@@ -6,7 +6,7 @@ LD = nvcc
 LDFLAGS = -lm
 
 all: \
-	01 02
+	01 02 03
 
 01: src/01.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
@@ -14,8 +14,11 @@ all: \
 02: src/02.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
+03: src/03.o src/utils.o 
+	$(LD) -o $@.out $^ $(LDFLAGS)
+
 %.o: %.cu
-	$(CUDAC) $(CUDAFLAGS) -c -o $@ $<
+	$(CUDAC) $(CUDAFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
 clean:
 	rm -f *.out src/*.o src/*.out
