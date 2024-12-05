@@ -6,7 +6,7 @@ LD = nvcc
 LDFLAGS = -lm
 
 all: \
-	01 02 03
+	01 02 03 04
 
 01: src/01.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
@@ -15,6 +15,9 @@ all: \
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
 03: src/03.o src/utils.o 
+	$(LD) -o $@.out $^ $(LDFLAGS)
+
+04: src/04.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
 %.o: %.cu
