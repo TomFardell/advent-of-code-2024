@@ -29,6 +29,9 @@ all: \
 07: src/07.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
+08: src/08.o src/utils.o 
+	$(LD) -o $@.out $^ $(LDFLAGS)
+
 %.o: %.cu
 	$(CUDAC) $(CUDAFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 
