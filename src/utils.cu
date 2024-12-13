@@ -69,9 +69,12 @@ void print_int_array(int *arr, int N) {
   printf("\n");
 }
 
-void error_check(cudaError_t err) {
+void _error_check(const cudaError_t err, const int line, const char *file, const char *func) {
   if (err != cudaSuccess) {
-    fprintf(stderr, "GPU error\n%d %s: %s\n", err, cudaGetErrorName(err), cudaGetErrorString(err));
+    fprintf(stderr,
+            "==========|GPU error|==========\nLine   %d\nFile   %s\nIn     %s\nError  "
+            "%d %s: %s\n",
+            line, file, func, err, cudaGetErrorName(err), cudaGetErrorString(err));
     exit(EXIT_FAILURE);
   }
 }
