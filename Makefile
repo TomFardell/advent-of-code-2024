@@ -45,6 +45,10 @@ all: \
 12: src/12.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
+13: src/13.o src/utils.o 
+	$(LD) -o $@.out $^ $(LDFLAGS)
+
+
 %.o: %.cu
 	$(CUDAC) $(CUDAFLAGS) $(EXTRAFLAGS) -c -o $@ $<
 

@@ -7,7 +7,6 @@
 // compute the number of resultant stones from each of these stones after the remaining blinks.
 //=================================================================================================
 
-#include <cuda.h>
 #include <stdio.h>
 #include <stdlib.h>
 
