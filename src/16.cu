@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define S1
+#define P
 
 #ifdef P
 #define FILE_NAME "data/16p.txt"
@@ -24,57 +24,63 @@ typedef struct {
   int x, y;
 } v2;
 
+typedef struct {
+  int score, d, x, y;
+} node;
+
 v2 dirs[4] = {{1, 0}, {0, -1}, {-1, 0}, {0, 1}};
 
 void dijkstra(const char *map, const v2 start_pos, const int face_dir_idx, int *score_map) {
   char visited[4 * N * N] = {0};
+  node stack[4 * N * N];
+  int sp = 0;
 
   for (int i = 0; i < 4 * N * N; i++) {
     score_map[i] = INT_MAX;
   }
-  score_map[face_dir_idx + 4 * (start_pos.x + N * start_pos.y)] = 0;
+  stack[0] = {0, face_dir_idx, start_pos.x, start_pos.y};
 
-  for (int node_count = 0; node_count < 4 * N * N; node_count++) {
-    // First find the unvisited node with lowest score (naively since the grid isn't too large)
-    int node_d, node_x, node_y;
-    int min_score = INT_MAX;
-    for (int d = 0; d < 4; d++) {
-      for (int x = 0; x < N; x++) {
-        for (int y = 0; y < N; y++) {
-          // If not visited and has a lower score than the current minimum, set as new minimum
-          if (!visited[d + 4 * (x + N * y)] && score_map[d + 4 * (x + N * y)] < min_score) {
-            min_score = score_map[d + 4 * (x + N * y)];
-            node_d = d;
-            node_x = x;
-            node_y = y;
+  while (sp >= 0) {
+    node this_node = stack[sp--];
+
+    if (visited[this_node.d + 4 * (this_node.x + N * this_node.y)]) continue;
+
+    int node_score = this_node.score;
+    visited[this_node.d + 4 * (this_node.x + N * this_node.y)] = 1;  // Set this node as visited
+    score_map[this_node.d + 4 * (this_node.x + N * this_node.y)] = node_score;  // Update the map
+
+    // Rotation neighbours and then the move forwards neighbour
+    node neighbours[3] = {{node_score + 1000, (this_node.d + 1) % 4, this_node.x, this_node.y},
+                          {node_score + 1000, (this_node.d + 3) % 4, this_node.x, this_node.y},
+                          {node_score + 1, this_node.d, this_node.x + dirs[this_node.d].x,
+                           this_node.y + dirs[this_node.d].y}};
+
+    for (int i = 0; i < 3; i++) {
+      int n_score = neighbours[i].score;
+      int n_d = neighbours[i].d;
+      int n_x = neighbours[i].x;
+      int n_y = neighbours[i].y;
+      int c_score = score_map[n_d + 4 * (n_x + N * n_y)];
+
+      if (map[n_x + N * n_y] == '#') continue;
+      if (n_score < c_score) {
+        // Extend the stack with a dummy node that will be overwritten later
+        stack[++sp] = {-1, 0, 0, 0};
+
+        // Insert this node in the stack, maintaining sorting (linear)
+        for (int si = 0; si <= sp; si++) {
+          if (n_score >= stack[si].score) {
+            // Move nodes up
+            for (int sj = sp; sj > si; sj--) {
+              stack[sj] = stack[sj - 1];
+            }
+            // Insert this node
+            stack[si] = neighbours[i];
+            break;
           }
         }
       }
     }
-
-    int node_score = score_map[node_d + 4 * (node_x + N * node_y)];
-    visited[node_d + 4 * (node_x + N * node_y)] = 1;  // Set this node as visited
-
-    // Go through neighbours and update their scores
-    int rotation_neighbours[2] = {
-        ((node_d + 1) % 4) + 4 * (node_x + N * node_y),  // Clockwise rotation
-        ((node_d + 3) % 4) + 4 * (node_x + N * node_y),  // Anticlockwise rotation
-    };
-    for (int i = 0; i < 2; i++) {
-      int current_score = score_map[rotation_neighbours[i]];
-      int potential_score = node_score + 1000;
-      if (potential_score < current_score) score_map[rotation_neighbours[i]] = potential_score;
-    }
-    int move_neighbour = node_d + 4 * ((node_x + dirs[node_d].x) + N * (node_y + dirs[node_d].y));
-    // If the node in front is a wall, set it as visited and move on
-    if (map[move_neighbour / 4] == '#') {
-      visited[move_neighbour] = 1;
-      node_count++;
-      continue;
-    }
-    int current_score = score_map[move_neighbour];
-    int potential_score = node_score + 1;
-    if (potential_score < current_score) score_map[move_neighbour] = potential_score;
   }
 }
 
