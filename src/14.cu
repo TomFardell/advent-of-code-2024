@@ -29,7 +29,6 @@
 #define N_SECONDS 100
 #define MAX_SEARCH 10000  // Initially I had this set to 100000
 #define PRINT_MAPS 0      // Change to 1 to print out maps for finding the Christmas tree in part 2
-#define BLOCK_SIZE 8
 
 typedef struct {
   int x, y;
