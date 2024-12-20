@@ -19,8 +19,11 @@
 #define PL 8
 #endif
 
+// Number of makeable and unmakeable patterns to store. Setting this too large slows the program,
+// since there will be redundant values stored. I am using an array rather than a hash table, so the
+// lookup time is proportional to this value
+#define MC 100
 #define LT (TL - 2)  // Longest towel is 2 less than the size of buffer needed
-#define MC 10000     // Number of makeable and unmakeables patterns to store
 
 typedef struct {
   char makeables[MC * PL], unmakeables[MC * PL];
@@ -44,15 +47,22 @@ int can_be_made(const char *pattern, const char *towels, storage *p_store) {
       if (!strcmp(towels + TL * t, prefix)) {
         const char *suffix = pattern + i + 1;
         int makeable = -1;
+        int new_suffix = 1;
 
-        for (int m = 0; m < p_store->n_m; m++) {
+        for (int m = 0; m < p_store->n_m && makeable == -1; m++) {
           if (!strcmp(suffix, p_store->makeables + PL * m)) {
             makeable = 1;
           }
         }
-        for (int u = 0; u < p_store->n_u; u++) {
-          if (!strcmp(suffix, p_store->unmakeables + PL * u)) {
-            makeable = 0;
+
+        // p_store->unmakeables is likely to contain null strings, so first ensure the suffix is not
+        // null (as otherwise it will be seen as unmakeable)
+        if (strlen(suffix) > 0) {
+          for (int u = 0; u < p_store->n_u && makeable == -1; u++) {
+            if (!strcmp(suffix, p_store->unmakeables + PL * u)) {
+              makeable = 0;
+              new_suffix = 0;
+            }
           }
         }
 
@@ -64,14 +74,13 @@ int can_be_made(const char *pattern, const char *towels, storage *p_store) {
           p_store->c_m = (p_store->c_m + 1) % MC;
           p_store->n_m = (p_store->n_m + 1 > MC) ? MC : p_store->n_m + 1;
           strncpy(p_store->makeables + PL * p_store->c_m, pattern, PL);
-        } else {
-          // Put the pattern in the array of unmakeables, wrapping the count if the array is full
+          return 1;
+        } else if (new_suffix) {
+          // Put the suffix in the array of unmakeables, wrapping the count if the array is full
           p_store->c_u = (p_store->c_u + 1) % MC;
           p_store->n_u = (p_store->n_u + 1 > MC) ? MC : p_store->n_u + 1;
-          strncpy(p_store->unmakeables + PL * p_store->c_u, pattern, PL);
+          strncpy(p_store->unmakeables + PL * p_store->c_u, suffix, PL);
         }
-
-        return makeable;
       }
     }
   }
@@ -99,7 +108,8 @@ int main() {
 
   int count = 0;
   for (int p = 0; p < PC; p++) {
-    count += can_be_made(patterns + PL * p, towels, &p_store);
+    int m = can_be_made(patterns + PL * p, towels, &p_store);
+    count += m;
   }
 
   printf("%d\n", count);
