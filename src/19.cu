@@ -19,21 +19,39 @@
 #define PL 8
 #endif
 
-// Number of makeable and unmakeable patterns to store. Setting this too large slows the program,
-// since there will be redundant values stored. I am using an array rather than a hash table, so the
-// lookup time is proportional to this value
-#define MC 100
+// Number of unmakeable patterns to store. Setting this too large slows the program, since there
+// will be redundant values stored. I am using an array rather than a hash table, so the lookup time
+// is proportional to this value
+#define UC 20
+#define MC 80        // Number of makeable patterns to store with their number of ways to make
 #define LT (TL - 2)  // Longest towel is 2 less than the size of buffer needed
 
-typedef struct {
-  char makeables[MC * PL], unmakeables[MC * PL];
-  int n_m, n_u;
-  int c_m, c_u;
-} storage;
+typedef long long unsigned llu;
 
-int can_be_made(const char *pattern, const char *towels, storage *p_store) {
+typedef struct {
+  char patterns[UC * PL];
+  int n, p;
+} unmakeables;
+
+typedef struct {
+  char patterns[MC * PL];
+  llu counts[MC];
+  int n, p;
+} makeables;
+
+llu ways_to_make(const char *pattern, const char *towels, unmakeables *u_store,
+                 makeables *m_store) {
   int p_len = strlen(pattern);
   if (p_len == 0) return 1;
+
+  llu ways = 0;
+
+  // If pattern is memoized, return the count here
+  for (int i = 0; i < m_store->n; i++) {
+    if (!strcmp(pattern, m_store->patterns + PL * i)) {
+      return m_store->counts[i];
+    }
+  }
 
   // For each size up to the minimum of this pattern's length and the maximum towel length
   for (int i = 0; i < ((p_len < LT) ? p_len : LT); i++) {
@@ -46,46 +64,44 @@ int can_be_made(const char *pattern, const char *towels, storage *p_store) {
       // If the prefix matches a towel
       if (!strcmp(towels + TL * t, prefix)) {
         const char *suffix = pattern + i + 1;
-        int makeable = -1;
-        int new_suffix = 1;
+        int unmakeable = 0;
 
-        for (int m = 0; m < p_store->n_m && makeable == -1; m++) {
-          if (!strcmp(suffix, p_store->makeables + PL * m)) {
-            makeable = 1;
-          }
-        }
-
-        // p_store->unmakeables is likely to contain null strings, so first ensure the suffix is not
-        // null (as otherwise it will be seen as unmakeable)
+        // The unmakeable patterns array is likely to contain null strings, so first ensure the
+        // suffix is not null (as otherwise it will be seen as unmakeable)
         if (strlen(suffix) > 0) {
-          for (int u = 0; u < p_store->n_u && makeable == -1; u++) {
-            if (!strcmp(suffix, p_store->unmakeables + PL * u)) {
-              makeable = 0;
-              new_suffix = 0;
+          for (int u = 0; u < u_store->n; u++) {
+            if (!strcmp(suffix, u_store->patterns + PL * u)) {
+              unmakeable = 1;
+              break;
             }
           }
         }
 
-        // Only recurse if not already seen the suffix
-        if (makeable == -1) makeable = can_be_made(suffix, towels, p_store);
+        // If the suffix is stored as unmakeable, finish for this prefix
+        if (unmakeable) break;
 
-        if (makeable) {
-          // Put the pattern in the array of makeables, wrapping the count if the array is full
-          p_store->c_m = (p_store->c_m + 1) % MC;
-          p_store->n_m = (p_store->n_m + 1 > MC) ? MC : p_store->n_m + 1;
-          strncpy(p_store->makeables + PL * p_store->c_m, pattern, PL);
-          return 1;
-        } else if (new_suffix) {
+        llu suffix_ways = ways_to_make(suffix, towels, u_store, m_store);
+
+        if (suffix_ways == 0) {
           // Put the suffix in the array of unmakeables, wrapping the count if the array is full
-          p_store->c_u = (p_store->c_u + 1) % MC;
-          p_store->n_u = (p_store->n_u + 1 > MC) ? MC : p_store->n_u + 1;
-          strncpy(p_store->unmakeables + PL * p_store->c_u, suffix, PL);
+          u_store->p = (u_store->p + 1) % UC;
+          u_store->n = (u_store->n + 1 > UC) ? UC : u_store->n + 1;
+          strncpy(u_store->patterns + PL * u_store->p, suffix, PL);
         }
+
+        ways += suffix_ways;
+        break;  // Stop checking this prefix
       }
     }
   }
 
-  return 0;
+  // Add this pattern's data to the makeables storage
+  m_store->p = (m_store->p + 1) % MC;
+  m_store->n = (m_store->n + 1 > MC) ? MC : m_store->n + 1;
+  strncpy(m_store->patterns + PL * m_store->p, pattern, PL);
+  m_store->counts[m_store->p] = ways;
+
+  return ways;
 }
 
 int main() {
@@ -104,15 +120,18 @@ int main() {
   }
   fclose(file);
 
-  storage p_store = {{0}, {0}, 0, 0, 0, 0};
+  unmakeables u_store = {{0}, 0, 0};
+  makeables m_store = {{0}, {0}, 0, 0};
 
-  int count = 0;
+  int m_count = 0;
+  llu t_count = 0;
   for (int p = 0; p < PC; p++) {
-    int m = can_be_made(patterns + PL * p, towels, &p_store);
-    count += m;
+    llu w = ways_to_make(patterns + PL * p, towels, &u_store, &m_store);
+    m_count += (w > 0);
+    t_count += w;
   }
 
-  printf("%d\n", count);
+  printf("%d\n%llu\n", m_count, t_count);
 
   return 0;
 }
