@@ -19,101 +19,64 @@
 #define PL 8
 #endif
 
-#define LT (TL - 2)     // Longest towel is 2 less than the size of buffer needed
-#define MEMO_N 5        // Largest length of pattern to store in memo
-#define MEMO_SIZE 7776  // 6 ^ MEMO_N
+#define LT (TL - 2)  // Longest towel is 2 less than the size of buffer needed
+#define MC 10000     // Number of makeable and unmakeables patterns to store
 
-int char_coef(const char c) {
-  switch (c) {
-    case 'w':
-      return 1;
-    case 'u':
-      return 2;
-    case 'b':
-      return 3;
-    case 'r':
-      return 4;
-    case 'g':
-      return 5;
-    default:
-      return 0;
-  }
-}
+typedef struct {
+  char makeables[MC * PL], unmakeables[MC * PL];
+  int n_m, n_u;
+  int c_m, c_u;
+} storage;
 
-int hash(const char *pattern) {
-  int res = 0;
-  for (int i = 0; i < MEMO_N; i++) {
-    int coef = char_coef(pattern[i]);
-    // Return res as soon as the null terminator is found as there could be junk values after it
-    if (!coef) return res;
-    res *= MEMO_N + 1;
-    res += coef;
-  }
-  return res;
-}
-
-int _can_be_made(const char *pattern, const char *used, const int n_used, const char *towels,
-                 char *memo) {
+int can_be_made(const char *pattern, const char *towels, storage *p_store) {
   int p_len = strlen(pattern);
-  int h = -1;
   if (p_len == 0) return 1;
-
-  if (p_len <= MEMO_N) {
-    h = hash(pattern);
-    if (memo[h] != -1) {
-      return memo[h];
-    }
-  }
 
   // For each size up to the minimum of this pattern's length and the maximum towel length
   for (int i = 0; i < ((p_len < LT) ? p_len : LT); i++) {
     // Get the prefix of pattern of this length
-    char start[TL];
-    strncpy(start, pattern, i + 1);
-    start[i + 1] = 0;
+    char prefix[TL];
+    strncpy(prefix, pattern, i + 1);
+    prefix[i + 1] = 0;
 
     for (int t = 0; t < TC; t++) {
       // If the prefix matches a towel
-      if (!strcmp(towels + TL * t, start)) {
-        int not_used = 1;
-        // Go through the used towels and check equality with the prefix
-        for (int ut = 0; ut < n_used; ut++) {
-          if (!strcmp(towels + TL * t, used + TL * ut)) {
-            not_used = 0;
-            break;
+      if (!strcmp(towels + TL * t, prefix)) {
+        const char *suffix = pattern + i + 1;
+        int makeable = -1;
+
+        for (int m = 0; m < p_store->n_m; m++) {
+          if (!strcmp(suffix, p_store->makeables + PL * m)) {
+            makeable = 1;
+          }
+        }
+        for (int u = 0; u < p_store->n_u; u++) {
+          if (!strcmp(suffix, p_store->unmakeables + PL * u)) {
+            makeable = 0;
           }
         }
 
-        // If the prefix is a valid unused towel, add that towel to a new used array and recurse
-        if (not_used) {
-          char *new_used = (char *)malloc((n_used + 1) * TL * sizeof(char));
-          for (int ut = 0; ut < n_used; ut++) {
-            strcpy(new_used + TL * ut, used + TL * ut);
-          }
-          strcpy(new_used + TL * n_used, start);
+        // Only recurse if not already seen the suffix
+        if (makeable == -1) makeable = can_be_made(suffix, towels, p_store);
 
-          int makeable = _can_be_made(pattern + i + 1, NULL, 0, towels, memo);
-          free(new_used);
-          if (makeable) {
-            if (p_len <= MEMO_N) memo[h] = 1;
-            return 1;
-          }
+        if (makeable) {
+          // Put the pattern in the array of makeables, wrapping the count if the array is full
+          p_store->c_m = (p_store->c_m + 1) % MC;
+          p_store->n_m = (p_store->n_m + 1 > MC) ? MC : p_store->n_m + 1;
+          strncpy(p_store->makeables + PL * p_store->c_m, pattern, PL);
+        } else {
+          // Put the pattern in the array of unmakeables, wrapping the count if the array is full
+          p_store->c_u = (p_store->c_u + 1) % MC;
+          p_store->n_u = (p_store->n_u + 1 > MC) ? MC : p_store->n_u + 1;
+          strncpy(p_store->unmakeables + PL * p_store->c_u, pattern, PL);
         }
+
+        return makeable;
       }
     }
   }
 
-  if (p_len <= MEMO_N) memo[h] = 0;
   return 0;
-}
-
-int can_be_made(const char *pattern, const char *towels) {
-  char memo[MEMO_SIZE];
-  for (int i = 0; i < MEMO_SIZE; i++) {
-    memo[i] = -1;
-  }
-
-  return _can_be_made(pattern, NULL, 0, towels, memo);
 }
 
 int main() {
@@ -132,9 +95,11 @@ int main() {
   }
   fclose(file);
 
+  storage p_store = {{0}, {0}, 0, 0, 0, 0};
+
   int count = 0;
   for (int p = 0; p < PC; p++) {
-    count += can_be_made(patterns + PL * p, towels);
+    count += can_be_made(patterns + PL * p, towels, &p_store);
   }
 
   printf("%d\n", count);
