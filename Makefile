@@ -5,13 +5,14 @@ CUDAFLAGS = "--compiler-options=$(CFLAGS)" -rdc=true
 
 CLD = gcc
 LD = nvcc
-LDC = $(LD)
+LDC = gcc
 LDFLAGS = -lm
 LDCFLAGS = $(LDFLAGS)
 
 all: \
 	01 02 03 04 05 06 07 08 09 10 \
 	11 12 13 14 15 16 17 18 19 20 \
+	21
 
 01: src/01.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
@@ -71,6 +72,9 @@ all: \
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
 20: src/20.o
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
+
+21: src/21.o
 	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 %.o: %.cu
