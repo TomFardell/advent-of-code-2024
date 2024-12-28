@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #define P
 
@@ -13,6 +14,12 @@
 
 #define MOD 16777216
 #define N_NUMS 2000
+// Fraction of max count to discard. Works for my puzzle input, but could need decreasing (for short
+// puzzle input, requires C set to 0.7)
+#define C 0.9
+
+// Macro for indexing 4D array
+#define index(a1, a2, a3, a4) ((a1 + 9) + 19 * ((a2 + 9) + 19 * ((a3 + 9) + 19 * (a4 + 9))))
 
 typedef long long unsigned llu;
 
@@ -53,6 +60,28 @@ int seq_total_value(const int *seq, const llu *nums) {
   return total;
 }
 
+void fill_counts(const llu *nums, int *counts) {
+  for (int i = 0; i < N; i++) {
+    llu n = nums[i];
+    int diffs[4] = {10, 10, 10, 10};
+    int prev = n % 10;
+    for (int i = 0; i < N_NUMS; i++) {
+      n = evolve(n);
+      int price = n % 10;
+      diffs[0] = diffs[1];
+      diffs[1] = diffs[2];
+      diffs[2] = diffs[3];
+      diffs[3] = price - prev;
+      prev = price;
+
+      // Don't add to counts before a sequence is seen
+      if (diffs[0] != 10) {
+        counts[index(diffs[0], diffs[1], diffs[2], diffs[3])]++;
+      }
+    }
+  }
+}
+
 int infeasible(const int n) { return (n < -9 || 9 < n); }
 
 int main(void) {
@@ -74,6 +103,25 @@ int main(void) {
     total += n;
   }
 
+  int *counts = calloc(19 * 19 * 19 * 19, sizeof *counts);
+  if (counts == NULL) {
+    fprintf(stderr, "Error allocating memory.\n");
+    exit(EXIT_FAILURE);
+  }
+  fill_counts(nums, counts);
+
+  int max_count = 0;
+  for (int a1 = -9; a1 <= 9; a1++) {
+    for (int a2 = -9; a2 <= 9; a2++) {
+      for (int a3 = -9; a3 <= 9; a3++) {
+        for (int a4 = -9; a4 <= 9; a4++) {
+          int this_count = counts[index(a1, a2, a3, a4)];
+          if (this_count > max_count) max_count = this_count;
+        }
+      }
+    }
+  }
+
   int max_profit = 0;
   for (int a1 = -9; a1 <= 9; a1++) {
     for (int a2 = -9; a2 <= 9; a2++) {
@@ -84,17 +132,19 @@ int main(void) {
               infeasible(a3 + a4))
             continue;
 
+          if (counts[index(a1, a2, a3, a4)] < C * max_count) continue;
+
           // Don't check this sequence if it isn't close in number of occurences to current best
           int seq[4] = {a1, a2, a3, a4};
-
           int val = seq_total_value(seq, nums);
 
           if (val > max_profit) max_profit = val;
-          printf("%3d %3d %3d %3d: %6d (%6d)\n", a1, a2, a3, a4, val, max_profit);
         }
       }
     }
   }
+
+  free(counts);
 
   printf("%llu\n%d\n", total, max_profit);
 
