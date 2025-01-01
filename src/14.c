@@ -10,7 +10,6 @@
 // before - I couldn't be bothered.
 //==================================================================================================
 #include <stdio.h>
-#include <stdlib.h>
 
 #define INPUT 'p'
 

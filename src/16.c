@@ -3,7 +3,7 @@
 // having to deal with long CUDA calls everywhere.
 //=================================================================================================
 #include <stdio.h>
-#include <stdlib.h>
+#include <limits.h>
 
 #define P
 
@@ -38,7 +38,7 @@ void dijkstra(const char *map, const v2 start_pos, const int face_dir_idx, int *
   for (int i = 0; i < 4 * N * N; i++) {
     score_map[i] = INT_MAX;
   }
-  stack[0] = {0, face_dir_idx, start_pos.x, start_pos.y};
+  stack[0] = (node){0, face_dir_idx, start_pos.x, start_pos.y};
 
   while (sp >= 0) {
     node this_node = stack[sp--];
@@ -65,7 +65,7 @@ void dijkstra(const char *map, const v2 start_pos, const int face_dir_idx, int *
       if (map[n_x + N * n_y] == '#') continue;
       if (n_score < c_score) {
         // Extend the stack with a dummy node that will be overwritten later
-        stack[++sp] = {-1, 0, 0, 0};
+        stack[++sp] = (node){-1, 0, 0, 0};
 
         // Insert this node in the stack, maintaining sorting (linear)
         for (int si = 0; si <= sp; si++) {
@@ -94,8 +94,8 @@ int main(void) {
   for (int y = 0; y < N; y++) {
     for (int x = 0; x < N; x++) {
       fscanf(file, "%c", map + x + N * y);
-      if (map[x + N * y] == 'S') start_pos = {x, y};
-      if (map[x + N * y] == 'E') end_pos = {x, y};
+      if (map[x + N * y] == 'S') start_pos = (v2){x, y};
+      if (map[x + N * y] == 'E') end_pos = (v2){x, y};
     }
     fscanf(file, "\n");
   }

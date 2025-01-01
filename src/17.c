@@ -89,7 +89,7 @@ program_state step_program(const program_state state, const int *program) {
     }
   }
 
-  return {p, a, b, c, o};
+  return (program_state){p, a, b, c, o};
 }
 
 int output_after_loop(const ll a, const int *program) {

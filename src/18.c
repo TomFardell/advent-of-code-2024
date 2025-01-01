@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 
 #define P
 
@@ -31,7 +30,7 @@ int steps_to_end(const char *grid) {
   int hp = 0;
   int tp = 0;
 
-  queue[hp++] = {0, 0};
+  queue[hp++] = (v2){0, 0};
 
   while (hp > tp) {
     v2 point = queue[tp++];
@@ -47,7 +46,7 @@ int steps_to_end(const char *grid) {
         int dist = distances[point.x + G * point.y] + 1;
         if (nx == G - 1 && ny == G - 1) return dist;
         distances[nx + G * ny] = dist;
-        queue[hp++] = {nx, ny};
+        queue[hp++] = (v2){nx, ny};
       }
     }
   }

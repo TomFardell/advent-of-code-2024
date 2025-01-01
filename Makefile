@@ -45,7 +45,7 @@ all: \
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
 11: src/11.o
-	$(LD) -o $@.out $^ $(LDFLAGS)
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 12: src/12.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
@@ -54,22 +54,22 @@ all: \
 	$(LD) -o $@.out $^ $(LDFLAGS)
 
 14: src/14.o 
-	$(LD) -o $@.out $^ $(LDFLAGS)
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 15: src/15.o
-	$(LD) -o $@.out $^ $(LDFLAGS)
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 16: src/16.o
-	$(LD) -o $@.out $^ $(LDFLAGS)
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 17: src/17.o
-	$(LD) -o $@.out $^ $(LDFLAGS)
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 18: src/18.o
-	$(LD) -o $@.out $^ $(LDFLAGS)
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 19: src/19.o
-	$(LD) -o $@.out $^ $(LDFLAGS)
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 20: src/20.o
 	$(LDC) -o $@.out $^ $(LDCFLAGS)

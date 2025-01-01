@@ -34,13 +34,13 @@ typedef struct {
 v2 char_to_dir(const char dir_char) {
   switch (dir_char) {
     case '^':
-      return {0, -1};
+      return (v2){0, -1};
     case '>':
-      return {1, 0};
+      return (v2){1, 0};
     case 'v':
-      return {0, 1};
+      return (v2){0, 1};
     case '<':
-      return {-1, 0};
+      return (v2){-1, 0};
     default:
       printf("Invalid character '%c'\n", dir_char);
       exit(EXIT_FAILURE);
