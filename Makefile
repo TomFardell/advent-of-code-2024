@@ -12,7 +12,7 @@ LDCFLAGS = $(LDFLAGS)
 all: \
 	01 02 03 04 05 06 07 08 09 10 \
 	11 12 13 14 15 16 17 18 19 20 \
-	21 22 23 24
+	21 22 23 24 25
 
 01: src/01.o src/utils.o 
 	$(LD) -o $@.out $^ $(LDFLAGS)
@@ -84,6 +84,9 @@ all: \
 	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 24: src/24.o
+	$(LDC) -o $@.out $^ $(LDCFLAGS)
+
+25: src/25.o
 	$(LDC) -o $@.out $^ $(LDCFLAGS)
 
 %.o: %.cu
